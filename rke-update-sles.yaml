@@ -1,0 +1,60 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: rke-update-sles-script
+  namespace: rke-update-sles 
+type: Opaque
+stringData:
+  rke-update-sles.sh: |
+    #!/bin/bash
+    # set -e
+    # update the repos connected to the server
+    zypper ref
+    # install all available updates
+    zypper patch --with-update -y
+    # we have to update a second time in case the update stack is updated
+    zypper patch --with-update -y
+    # zypper up -y
+    # check if zypper says the server requires a reboot
+    # zypper gives back "0" if no reboot is needed
+    zypper needs-rebooting; NEEDS_REBOOTING=$?
+    # check if any service needs a restart - we also reboot if a service needs restarting
+    # the following is "1" if no service restart is required
+    zypper ps|grep "You may wish to restart these processes"; ZYPPER_PS=$? 
+    # output for the logs
+    echo "NEEDS_REBOOTING = $NEEDS_REBOOTING"
+    echo "ZYPPER_PS = $ZYPPER_PS"
+    # check if reboot is needed and only reboot if zypper ps does show that a process restart is needed" and 
+    if [ ! "$ZYPPER_PS" == "0" ] && [ "$NEEDS_REBOOTING" == "0" ]; then
+        echo "No reboot required"
+        exit 0
+    else
+        echo "Reboot required so initiating the reboot, now!"
+        reboot
+    fi
+---
+apiVersion: upgrade.cattle.io/v1
+kind: Plan
+metadata:
+  name: rke-update-sles
+  namespace: rke-update-sles
+spec:
+  concurrency: 1
+  tolerations:
+  - {key: CriticalAddonsOnly, operator: Exists}
+  nodeSelector:
+    matchExpressions:
+    - {key: skip-rke-update-sles, operator: DoesNotExist}
+  serviceAccountName: rke-update-sles
+  secrets:
+    - name: rke-update-sles-script
+      path: /host/run/system-upgrade/secrets/update
+  drain:
+    force: false
+  version: sles-2022-02-14-01
+  upgrade:
+    image: registry.suse.com/suse/sle15:15.3.17.8.25
+    command: ["chroot", "/host"]
+    args: ["sh", "/run/system-upgrade/secrets/update/rke-update-sles.sh"]
+
