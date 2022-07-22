@@ -31,7 +31,9 @@ stringData:
         exit 0
     else
         echo "Reboot required so initiating the reboot, now!"
-        reboot
+        # see if this helps against "unknown" pods
+        #reboot
+        shutdown -r +1
     fi
 ---
 apiVersion: upgrade.cattle.io/v1
