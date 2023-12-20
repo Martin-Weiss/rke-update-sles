@@ -12,9 +12,9 @@ stringData:
     # update the repos connected to the server
     zypper ref
     # install all available updates
-    zypper patch --with-update -y
+    zypper patch --with-update --allow-vendor-change -y
     # we have to update a second time in case the update stack is updated
-    zypper patch --with-update -y
+    zypper patch --with-update --allow-vendor-change -y
     # zypper up -y
     # check if zypper says the server requires a reboot
     # zypper gives back "0" if no reboot is needed
@@ -56,7 +56,7 @@ spec:
     force: false
   version: sles-2022-02-14-01
   upgrade:
-    image: registry.suse.com/suse/sle15:15.3.17.8.25
+    image: registry.suse.com/bci/bci-base:15.5.36.5.67
     command: ["chroot", "/host"]
     args: ["sh", "/run/system-upgrade/secrets/update/rke-update-sles.sh"]
 
