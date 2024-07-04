@@ -54,9 +54,9 @@ spec:
       path: /host/run/system-upgrade/secrets/update
   drain:
     force: false
-  version: sles-2022-02-14-01
+  version: sles-2024-07-15-14
   upgrade:
-    image: registry.suse.com/bci/bci-base:15.5.36.5.67
+    image: registry.suse.com/bci/bci-base:15.6.47.5.13
     command: ["chroot", "/host"]
     args: ["sh", "/run/system-upgrade/secrets/update/rke-update-sles.sh"]
 
